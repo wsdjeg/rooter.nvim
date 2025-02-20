@@ -1,6 +1,6 @@
 # rooter.nvim
 
-`rooter.nvim` changes the working directory to the project root when you open a file. 
+`rooter.nvim` changes the working directory to the project root when you open a file. It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
 
 ## Install
 
