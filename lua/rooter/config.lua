@@ -4,6 +4,7 @@ local default = {
   root_patterns = { '.git/' },
   outermost = true,
   enable_cache = true,
+  project_non_root = '',
 }
 
 local config = vim.deepcopy(default)

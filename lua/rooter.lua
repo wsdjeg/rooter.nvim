@@ -180,7 +180,7 @@ local function sort_by_opened_time()
 end
 
 local function change_dir(dir)
-  if dir == unify_path(vim.fn.getcwd()) then
+  if not dir or dir == unify_path(vim.fn.getcwd()) then
     return false
   else
     vim.cmd(cd .. ' ' .. dir)
@@ -405,16 +405,16 @@ function M.current_root()
     rootdir = find_root_directory()
     if rootdir == nil or rootdir == '' then
       -- for no project
-      if vim.g.spacevim_project_non_root == '' then
-        rootdir = unify_path(fn.getcwd())
-      elseif vim.g.spacevim_project_non_root == 'home' and filereadable(bufname) then
-        rootdir = unify_path(fn.expand('~'))
-      elseif vim.g.spacevim_project_non_root == 'current' then
+      if rooter_config.project_non_root == '' then
+        rootdir = unify_path(vim.fn.getcwd())
+      elseif rooter_config.project_non_root == 'home' and filereadable(bufname) then
+        rootdir = unify_path(vim.fn.expand('~'))
+      elseif rooter_config.project_non_root == 'current' then
         local dir = unify_path(bufname, ':p:h')
         if isdirectory(dir) then
           rootdir = dir
         else
-          rootdir = unify_path(fn.getcwd())
+          rootdir = unify_path(vim.fn.getcwd())
         end
       end
       change_dir(rootdir)
