@@ -5,18 +5,11 @@
 -- License: GPLv3
 --=============================================================================
 
-local sp_buffer = require('spacevim.api').import('vim.buffer')
-
--- start debug mode
-
-local sp = require('spacevim')
-local sp_opt = require('spacevim.opt')
 local project_paths = {}
 local project_cache_path = vim.fn.stdpath('data') .. '/nvim-rooter.json'
-local spacevim_project_rooter_patterns = {}
-local project_rooter_patterns = {}
 local project_rooter_ignores = {}
 local project_callback = {}
+local rooter_config = require('rooter.config').get()
 
 local function exists(expr)
   return vim.fn.exists(expr) == 1
@@ -87,18 +80,6 @@ if exists(':tcd') then
   cd = 'tcd'
 elseif exists(':lcd') then
   cd = 'lcd'
-end
-
-local function update_rooter_patterns()
-  project_rooter_patterns = {}
-  project_rooter_ignores = {}
-  for _, v in pairs(sp_opt.project_rooter_patterns) do
-    if string.match(v, '^!') == nil then
-      table.insert(project_rooter_patterns, v)
-    else
-      table.insert(project_rooter_ignores, string.sub(v, 2, -1))
-    end
-  end
 end
 
 local function is_ignored_dir(dir)
@@ -184,12 +165,6 @@ local function sort_by_opened_time()
     table.insert(paths, k)
   end
   table.sort(paths, compare_time)
-  if sp_opt.projects_cache_num > 0 and #paths >= sp_opt.projects_cache_num then
-    for i = sp_opt.projects_cache_num, #paths, 1 do
-      project_paths[paths[sp_opt.projects_cache_num]] = nil
-      table.remove(paths, sp_opt.projects_cache_num)
-    end
-  end
   return paths
 end
 
@@ -205,7 +180,7 @@ end
 local function compare(d1, d2)
   local al = #vim.split(d1, '/')
   local bl = #vim.split(d2, '/')
-  if sp_opt.project_rooter_outermost == 0 or sp_opt.project_rooter_outermost == false then
+  if not rooter_config.outermost then
     if bl >= al then
       return false
     else
@@ -245,16 +220,16 @@ local function find_root_directory()
   end
   fd = vim.fn.fnamemodify(fd, ':p')
   local dirs = {}
-  for _, pattern in pairs(project_rooter_patterns) do
+  for _, pattern in pairs(rooter_config.rooter_patterns) do
     local find_path = ''
     if string.sub(pattern, -1) == '/' then
-      if sp_opt.project_rooter_outermost == 1 then
+      if rooter_config.outermost then
         find_path = finddir(pattern, fd, -1)
       else
         find_path = finddir(pattern, fd)
       end
     else
-      if sp_opt.project_rooter_outermost == 1 then
+      if rooter_config.outermost then
         find_path = findfile(pattern, fd, -1)
       else
         find_path = findfile(pattern, fd)
@@ -278,25 +253,7 @@ local function find_root_directory()
 end
 local function cache_project(prj)
   project_paths[prj.path] = prj
-  sp.cmd('let g:unite_source_menu_menus.Projects.command_candidates = []')
-  for _, key in pairs(sort_by_opened_time()) do
-    local desc = '['
-      .. project_paths[key].name
-      .. '] '
-      .. project_paths[key].path
-      .. ' <'
-      .. vim.fn.strftime('%Y-%m-%d %T', project_paths[key].opened_time)
-      .. '>'
-    local cmd = "call SpaceVim#plugins#projectmanager#open('" .. project_paths[key].path .. "')"
-    sp.cmd(
-      'call add(g:unite_source_menu_menus.Projects.command_candidates, ["'
-        .. desc
-        .. '", "'
-        .. cmd
-        .. '"])'
-    )
-  end
-  if sp_opt.enable_projects_cache then
+  if rooter_config.enable_cache then
     cache()
   end
 end
@@ -333,24 +290,12 @@ end
 
 function M.open(project)
   local path = project_paths[project]['path']
-  -- local name = project_paths[project]['name']
-  sp.cmd('tabnew')
-  -- I am not sure we should set the project name here.
-  -- sp.cmd('let t:_spacevim_tab_name = "[' .. name .. ']"')
-  sp.cmd(cd .. ' ' .. path)
-  if sp_opt.filemanager == 'vimfiler' then
-    sp.cmd('Startify | VimFiler')
-  elseif sp_opt.filemanager == 'nerdtree' then
-    sp.cmd('Startify | NERDTree')
-  elseif sp_opt.filemanager == 'defx' then
-    sp.cmd('Startify | Defx -new')
-  elseif sp_opt.filemanager == 'neo-tree' then
-    sp.cmd('Startify | NeoTreeFocusToggle')
-  end
+  vim.cmd('tabnew')
+  vim.cmd(cd .. ' ' .. path)
 end
 
 function M.current_name()
-  return sp.eval('b:_spacevim_project_name')
+  return vim.b.rooter_project_name or ''
 end
 
 function M.RootchandgeCallback()
@@ -399,17 +344,16 @@ function M.reg_callback(func, ...)
   end
 end
 
+local function buf_filter_do() end
+
 function M.kill_project()
-  local name = sp.eval('b:_spacevim_project_name')
-  if name ~= '' then
-    sp_buffer.filter_do({
-      ['expr'] = {
-        'buflisted(v:val)',
-        'getbufvar(v:val, "_spacevim_project_name") == "' .. name .. '"',
-      },
-      ['do'] = 'bd %d',
-    })
-  end
+  filter_do({
+    ['expr'] = {
+      'buflisted(v:val)',
+      'getbufvar(v:val, "_spacevim_project_name") == "' .. name .. '"',
+    },
+    ['do'] = 'bd %d',
+  })
 end
 
 function M.complete_project(arglead, cmdline, cursorpos)
@@ -444,14 +388,6 @@ function M.current_root()
     or vim.o.autochdir
   then
     return vim.fn.getcwd()
-  end
-  if
-    table.concat(sp_opt.project_rooter_patterns, ':')
-    ~= table.concat(spacevim_project_rooter_patterns, ':')
-  then
-    vim.fn.setbufvar('%', 'rootDir', '')
-    spacevim_project_rooter_patterns = sp_opt.project_rooter_patterns
-    update_rooter_patterns()
   end
   local rootdir = vim.fn.getbufvar('%', 'rootDir', '')
   if rootdir == '' then
