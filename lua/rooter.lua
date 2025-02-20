@@ -10,10 +10,7 @@ local sp_buffer = require('spacevim.api').import('vim.buffer')
 -- start debug mode
 
 local sp = require('spacevim')
-local sp_json = require('spacevim.api.data.json')
 local sp_opt = require('spacevim.opt')
-local fn = sp.fn
-local layer = require('spacevim.layer')
 local project_paths = {}
 local project_cache_path = vim.fn.stdpath('data') .. '/nvim-rooter.json'
 local spacevim_project_rooter_patterns = {}
@@ -26,62 +23,60 @@ local function exists(expr)
 end
 
 local function unify_path(p)
- return vim.fs.normalize(p, {})
+  return vim.fs.normalize(p, {})
 end
 
 local function finddir(what, where, ...)
-	
   -- let old_suffixesadd = &suffixesadd
   -- let &suffixesadd = ''
   local count = select(1, ...)
   if count == nil then
-      count = 0
+    count = 0
   end
   local path = ''
   local file = ''
-  if fn.filereadable(where) == 1 and fn.isdirectory(where) == 0 then
-    path = fn.fnamemodify(where, ':h')
+  if vim.fn.filereadable(where) == 1 and vim.fn.isdirectory(where) == 0 then
+    path = vim.fn.fnamemodify(where, ':h')
   else
     path = where
   end
   if count > 0 then
-    file = fn.finddir(what, fn.escape(path, ' ') .. ';', count)
-  elseif #{...} == 0 then
-    file = fn.finddir(what, fn.escape(path, ' ') .. ';')
+    file = vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';', count)
+  elseif #{ ... } == 0 then
+    file = vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';')
   elseif count == 0 then
-    file = fn.finddir(what, fn.escape(path, ' ') .. ';', -1)
+    file = vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';', -1)
   else
-    file = fn.get(fn.finddir(what, fn.escape(path, ' ') .. ';', -1), count, '')
+    file = vim.fn.get(vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';', -1), count, '')
   end
   -- let &suffixesadd = old_suffixesadd
   return file
 end
 
 local function findfile(what, where, ...)
-	
   -- let old_suffixesadd = &suffixesadd
   -- let &suffixesadd = ''
   local count = select(1, ...)
   if count == nil then
-      count = 0
+    count = 0
   end
 
   local file = ''
   local path = ''
 
-  if fn.filereadable(where) == 1 and  fn.isdirectory(where) == 0 then
-    path = fn.fnamemodify(where, ':h')
+  if vim.fn.filereadable(where) == 1 and vim.fn.isdirectory(where) == 0 then
+    path = vim.fn.fnamemodify(where, ':h')
   else
     path = where
   end
   if count > 0 then
-    file = fn.findfile(what, fn.escape(path, ' ') .. ';', count)
-  elseif #{...} == 0 then
-    file = fn.findfile(what, fn.escape(path, ' ') .. ';')
+    file = vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';', count)
+  elseif #{ ... } == 0 then
+    file = vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';')
   elseif count == 0 then
-    file = fn.findfile(what, fn.escape(path, ' ') .. ';', -1)
+    file = vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';', -1)
   else
-    file = fn.get(fn.findfile(what, fn.escape(path, ' ') .. ';', -1), count, '')
+    file = vim.fn.get(vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';', -1), count, '')
   end
   -- let &suffixesadd = old_suffixesadd
   return file
@@ -118,7 +113,7 @@ local function cache()
   local path = unify_path(project_cache_path, ':p')
   local file = io.open(path, 'w')
   if file then
-    if file:write(sp_json.json_encode(project_paths)) == nil then
+    if file:write(vim.json.encode(project_paths)) == nil then
     end
     io.close(file)
   else
@@ -156,7 +151,7 @@ end
 
 local function filter_invalid(projects)
   for key, value in pairs(projects) do
-    if fn.isdirectory(value.path) == 0 then
+    if vim.fn.isdirectory(value.path) == 0 then
       projects[key] = nil
     end
   end
@@ -167,7 +162,7 @@ local function load_cache()
   if filereadable(project_cache_path) then
     local cache_context = readfile(project_cache_path)
     if cache_context ~= nil then
-      local cache_object = sp_json.json_decode(cache_context)
+      local cache_object = vim.json.decode(cache_context)
       if type(cache_object) == 'table' then
         project_paths = filter_invalid(cache_object)
       end
@@ -202,7 +197,7 @@ local function change_dir(dir)
   if dir == unify_path(vim.fn.getcwd()) then
     return false
   else
-    sp.cmd(cd .. ' ' .. sp.fn.fnameescape(sp.fn.fnamemodify(dir, ':p')))
+    vim.cmd(cd .. ' ' .. vim.fn.fnameescape(vim.fn.fnamemodify(dir, ':p')))
     return true
   end
 end
@@ -228,7 +223,7 @@ end
 local function sort_dirs(dirs)
   table.sort(dirs, compare)
   local dir = dirs[1]
-  local bufdir = fn.getbufvar('%', 'rootDir', '')
+  local bufdir = vim.fn.getbufvar('%', 'rootDir', '')
   if bufdir == dir then
     return ''
   else
@@ -237,18 +232,18 @@ local function sort_dirs(dirs)
 end
 
 local function find_root_directory()
-  local fd = fn.bufname('%')
+  local fd = vim.fn.bufname('%')
   if fd == '' then
     -- for empty name buffer, check previous buffer dir
     local previous_bufnr = vim.fn.bufnr('#')
     if previous_bufnr == -1 then
-    elseif fn.getbufvar('#', 'rootDir', '') == '' then
+    elseif vim.fn.getbufvar('#', 'rootDir', '') == '' then
     else
-      return fn.getbufvar('#', 'rootDir', '')
+      return vim.fn.getbufvar('#', 'rootDir', '')
     end
-    fd = fn.getcwd()
+    fd = vim.fn.getcwd()
   end
-  fd = fn.fnamemodify(fd, ':p')
+  fd = vim.fn.fnamemodify(fd, ':p')
   local dirs = {}
   for _, pattern in pairs(project_rooter_patterns) do
     local find_path = ''
@@ -265,7 +260,7 @@ local function find_root_directory()
         find_path = findfile(pattern, fd)
       end
     end
-    local path_type = fn.getftype(find_path)
+    local path_type = vim.fn.getftype(find_path)
     if (path_type == 'dir' or path_type == 'file') and not (is_ignored_dir(find_path)) then
       find_path = unify_path(find_path, ':p')
       if path_type == 'dir' then
@@ -290,7 +285,7 @@ local function cache_project(prj)
       .. '] '
       .. project_paths[key].path
       .. ' <'
-      .. fn.strftime('%Y-%m-%d %T', project_paths[key].opened_time)
+      .. vim.fn.strftime('%Y-%m-%d %T', project_paths[key].opened_time)
       .. '>'
     local cmd = "call SpaceVim#plugins#projectmanager#open('" .. project_paths[key].path .. "')"
     sp.cmd(
@@ -306,45 +301,34 @@ local function cache_project(prj)
   end
 end
 
--- call add(g:spacevim_project_rooter_patterns, '.SpaceVim.d/')
-
--- let s:spacevim_project_rooter_patterns = copy(g:spacevim_project_rooter_patterns)
-update_rooter_patterns()
-
-if sp_opt.enable_projects_cache == 1 then
-  load_cache()
-end
-
-sp.cmd([[
-let g:unite_source_menu_menus = get(g:,'unite_source_menu_menus',{})
-let g:unite_source_menu_menus.Projects = {'description': 'Custom mapped keyboard shortcuts                   [SPC] p p'}
-let g:unite_source_menu_menus.Projects.command_candidates = get(g:unite_source_menu_menus.Projects,'command_candidates', [])
-]])
-
-if sp_opt.project_auto_root == 1 then
-  sp.cmd('augroup spacevim_project_rooter')
-  sp.cmd('autocmd!')
-  sp.cmd('autocmd VimEnter,BufEnter * ++nested call SpaceVim#plugins#projectmanager#current_root()')
-  sp.cmd(
-    "autocmd BufWritePost * :call setbufvar('%', 'rootDir', '') | call SpaceVim#plugins#projectmanager#current_root()"
-  )
-  sp.cmd('augroup END')
-end
 local M = {}
 
-function M.list()
-  if layer.isLoaded('unite') then
-    sp.cmd('Unite menu:Projects')
-  elseif layer.isLoaded('denite') then
-    sp.cmd('Denite menu:Projects')
-  elseif layer.isLoaded('fzf') then
-    sp.cmd('FzfMenu Projects')
-  elseif layer.isLoaded('leaderf') then
-    sp.cmd("call SpaceVim#layers#leaderf#run_menu('Projects')")
-  elseif layer.isLoaded('telescope') then
-    sp.cmd('Telescope project')
-  else
+function M.setup(opt)
+  require('rooter.config').setup(opt)
+  local group = vim.api.nvim_create_augroup('nvim-rooter', { clear = true })
+  vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter' }, {
+    group = group,
+    pattern = { '*' },
+    callback = function(e)
+      M.current_root()
+    end,
+  })
+  vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
+    group = group,
+    pattern = { '*' },
+    callback = function(e)
+      vim.b.rootDir = ''
+      M.current_root()
+    end,
+  })
+  local c = require('rooter.config').get()
+  if c.enable_cache then
+    load_cache()
   end
+end
+
+function M.list()
+  vim.cmd('Telescope project')
 end
 
 function M.open(project)
@@ -372,7 +356,7 @@ end
 function M.RootchandgeCallback()
   -- this function only will be called when switch to other project.
   local path = unify_path(fn.getcwd(), ':p')
-  local name = fn.fnamemodify(path, ':h:t')
+  local name = vim.fn.fnamemodify(path, ':h:t')
   local project = {
     ['path'] = path,
     ['name'] = name,
@@ -384,13 +368,13 @@ function M.RootchandgeCallback()
   cache_project(project)
   -- let g:_spacevim_project_name = project.name
   -- let b:_spacevim_project_name = g:_spacevim_project_name
-  fn.setbufvar('%', '_spacevim_project_name', project.name)
+  vim.fn.setbufvar('%', '_spacevim_project_name', project.name)
   for _, Callback in pairs(project_callback) do
     if type(Callback.func) == 'string' then
       if Callback.desc then
       else
       end
-      fn.call(Callback.func, {})
+      vim.fn.call(Callback.func, {})
     elseif type(Callback.func) == 'function' then
       if Callback.desc then
       else
@@ -430,14 +414,14 @@ end
 
 function M.complete_project(arglead, cmdline, cursorpos)
   local dir = vim.g.spacevim_src_root or '~'
-  local result = fn.split(fn.globpath(dir, '*'), '\n')
+  local result = vim.fn.split(fn.globpath(dir, '*'), '\n')
   local ps = {}
   for _, p in pairs(result) do
-    if fn.isdirectory(p) == 1 and fn.isdirectory(p .. '/.git') == 1 then
-      table.insert(ps, fn.fnamemodify(p, ':t'))
+    if vim.fn.isdirectory(p) == 1 and vim.fn.isdirectory(p .. '/.git') == 1 then
+      table.insert(ps, vim.fn.fnamemodify(p, ':t'))
     end
   end
-  return fn.join(ps, '\n')
+  return vim.fn.join(ps, '\n')
 end
 
 function M.OpenProject(p)
@@ -449,7 +433,7 @@ function M.OpenProject(p)
 end
 
 function M.current_root()
-  local bufname = fn.bufname('%')
+  local bufname = vim.fn.bufname('%')
   if
     bufname:match('%[denite%]')
     or bufname:match('denite-filter')
@@ -459,17 +443,17 @@ function M.current_root()
     or bufname:match('^neo%-tree') -- this is for neo-tree.nvim
     or vim.o.autochdir
   then
-    return fn.getcwd()
+    return vim.fn.getcwd()
   end
   if
     table.concat(sp_opt.project_rooter_patterns, ':')
     ~= table.concat(spacevim_project_rooter_patterns, ':')
   then
-    fn.setbufvar('%', 'rootDir', '')
+    vim.fn.setbufvar('%', 'rootDir', '')
     spacevim_project_rooter_patterns = sp_opt.project_rooter_patterns
     update_rooter_patterns()
   end
-  local rootdir = fn.getbufvar('%', 'rootDir', '')
+  local rootdir = vim.fn.getbufvar('%', 'rootDir', '')
   if rootdir == '' then
     rootdir = find_root_directory()
     if rootdir == nil or rootdir == '' then
@@ -495,7 +479,7 @@ function M.current_root()
         M.RootchandgeCallback()
       end
     end
-    fn.setbufvar('%', 'rootDir', rootdir)
+    vim.fn.setbufvar('%', 'rootDir', rootdir)
   elseif change_dir(rootdir) then
     M.RootchandgeCallback()
   end
