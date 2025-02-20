@@ -220,7 +220,7 @@ local function find_root_directory()
   end
   fd = vim.fn.fnamemodify(fd, ':p')
   local dirs = {}
-  for _, pattern in pairs(rooter_config.rooter_patterns) do
+  for _, pattern in pairs(rooter_config.root_patterns) do
     local find_path = ''
     if string.sub(pattern, -1) == '/' then
       if rooter_config.outermost then
@@ -243,7 +243,7 @@ local function find_root_directory()
       else
         find_path = unify_path(find_path, ':h')
       end
-      if find_path ~= unify_path(fn.expand('$HOME')) then
+      if find_path ~= unify_path(vim.fn.expand('$HOME')) then
         table.insert(dirs, find_path)
       else
       end
@@ -300,7 +300,7 @@ end
 
 function M.RootchandgeCallback()
   -- this function only will be called when switch to other project.
-  local path = unify_path(fn.getcwd(), ':p')
+  local path = unify_path(vim.fn.getcwd(), ':p')
   local name = vim.fn.fnamemodify(path, ':h:t')
   local project = {
     ['path'] = path,
