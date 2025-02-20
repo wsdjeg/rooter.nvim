@@ -15,8 +15,19 @@ local function exists(expr)
   return vim.fn.exists(expr) == 1
 end
 
-local function unify_path(p)
-  return vim.fs.normalize(p, {})
+local function unify_path(_path, ...)
+  local mod = select(1, ...)
+  if mod == nil then
+      mod = ':p'
+  end
+  local path = vim.fn.fnamemodify(_path, mod .. ':gs?[\\\\/]?/?')
+  if vim.fn.isdirectory(path) == 1 and string.sub(path, -1) ~= '/' then
+    return path .. '/'
+  elseif string.sub(_path, -1) == '/' and string.sub(path, -1) ~= '/' then
+    return path .. '/'
+  else
+    return path
+  end
 end
 
 local function finddir(what, where, ...)
@@ -172,7 +183,7 @@ local function change_dir(dir)
   if dir == unify_path(vim.fn.getcwd()) then
     return false
   else
-    vim.cmd(cd .. ' ' .. vim.fn.fnameescape(vim.fn.fnamemodify(dir, ':p')))
+    vim.cmd(cd .. ' ' .. dir)
     return true
   end
 end
@@ -389,7 +400,7 @@ function M.current_root()
   then
     return vim.fn.getcwd()
   end
-  local rootdir = vim.fn.getbufvar('%', 'rootDir', '')
+  local rootdir = vim.b.rootDir or ''
   if rootdir == '' then
     rootdir = find_root_directory()
     if rootdir == nil or rootdir == '' then
@@ -405,8 +416,6 @@ function M.current_root()
         else
           rootdir = unify_path(fn.getcwd())
         end
-      else
-        -- maybe log error
       end
       change_dir(rootdir)
     else
