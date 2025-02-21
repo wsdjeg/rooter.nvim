@@ -30,4 +30,11 @@ require('rooter').setup({
 })
 ```
 
+## Telescope extension
+
+This plugin also provides a telescope extension:
+
+```
+:Telescope project
+```
 

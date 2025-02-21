@@ -15,20 +15,7 @@ local function exists(expr)
   return vim.fn.exists(expr) == 1
 end
 
-local function unify_path(_path, ...)
-  local mod = select(1, ...)
-  if mod == nil then
-      mod = ':p'
-  end
-  local path = vim.fn.fnamemodify(_path, mod .. ':gs?[\\\\/]?/?')
-  if vim.fn.isdirectory(path) == 1 and string.sub(path, -1) ~= '/' then
-    return path .. '/'
-  elseif string.sub(_path, -1) == '/' and string.sub(path, -1) ~= '/' then
-    return path .. '/'
-  else
-    return path
-  end
-end
+local unify_path = require('rooter.util').unify_path
 
 local function finddir(what, where, ...)
   -- let old_suffixesadd = &suffixesadd
