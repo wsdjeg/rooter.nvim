@@ -296,6 +296,11 @@ function M.current_name()
   return vim.b.rooter_project_name or ''
 end
 
+function M.clear()
+  project_paths = {}
+  cache()
+end
+
 function M.RootchandgeCallback()
   -- this function only will be called when switch to other project.
   local path = unify_path(vim.fn.getcwd(), ':p')
