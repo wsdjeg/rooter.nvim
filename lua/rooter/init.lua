@@ -314,9 +314,7 @@ function M.RootchandgeCallback()
     return
   end
   cache_project(project)
-  -- let g:_spacevim_project_name = project.name
-  -- let b:_spacevim_project_name = g:_spacevim_project_name
-  vim.fn.setbufvar('%', '_spacevim_project_name', project.name)
+  vim.fn.setbufvar('%', 'rooter_project_name', project.name)
   for _, Callback in pairs(project_callback) do
     if type(Callback.func) == 'string' then
       if Callback.desc then
@@ -347,16 +345,12 @@ function M.reg_callback(func, ...)
   end
 end
 
-local function buf_filter_do() end
-
-function M.kill_project()
-  filter_do({
-    ['expr'] = {
-      'buflisted(v:val)',
-      'getbufvar(v:val, "_spacevim_project_name") == "' .. name .. '"',
-    },
-    ['do'] = 'bd %d',
-  })
+function M.kill_project(name)
+  for i = 1, vim.fn.bufnr('$') do
+    if vim.fn.buflisted(i) == 1 and vim.b[i].rooter_project_name == name then
+      vim.cmd(string.format('bd %d', i))
+    end
+  end
 end
 
 function M.complete_project(arglead, cmdline, cursorpos)
