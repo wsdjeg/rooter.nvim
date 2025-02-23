@@ -38,3 +38,4 @@ This plugin also provides a telescope extension:
 :Telescope project
 ```
 
+![Image](https://github.com/user-attachments/assets/f936176a-cace-4bac-b394-c1c11f3f71b7)
