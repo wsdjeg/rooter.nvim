@@ -353,26 +353,6 @@ function M.kill_project(name)
   end
 end
 
-function M.complete_project(arglead, cmdline, cursorpos)
-  local dir = vim.g.spacevim_src_root or '~'
-  local result = vim.fn.split(fn.globpath(dir, '*'), '\n')
-  local ps = {}
-  for _, p in pairs(result) do
-    if vim.fn.isdirectory(p) == 1 and vim.fn.isdirectory(p .. '/.git') == 1 then
-      table.insert(ps, vim.fn.fnamemodify(p, ':t'))
-    end
-  end
-  return vim.fn.join(ps, '\n')
-end
-
-function M.OpenProject(p)
-  local dir = vim.g.spacevim_src_root or '~'
-  local project_root = unify_path(dir, ':p') .. p
-  if vim.fn.isdirectory(project_root) == 1 then
-    sp.cmd('tabnew | cd ' .. project_root .. ' | Startify')
-  end
-end
-
 function M.current_root()
   local bufname = vim.fn.bufname('%')
   if
