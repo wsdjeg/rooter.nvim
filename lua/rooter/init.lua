@@ -12,11 +12,7 @@ local project_callback = {}
 local rooter_config = require('rooter.config').get()
 
 local function log(msg)
-  if
-    rooter_config.logger
-    and rooter_config.logger.info
-    and type(rooter_config.logger.info) == 'function'
-  then
+  if rooter_config.logger then
     rooter_config.logger.info(msg)
   end
 end
@@ -272,6 +268,11 @@ local M = {}
 function M.setup(opt)
   require('rooter.config').setup(opt)
   rooter_config = require('rooter.config').get()
+  if rooter_config.enable_logger then
+    pcall(function()
+      rooter_config.logger = require('logger').derive('rooter')
+    end)
+  end
   local group = vim.api.nvim_create_augroup('nvim-rooter', { clear = true })
   vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter' }, {
     group = group,
