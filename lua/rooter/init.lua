@@ -223,7 +223,7 @@ local function find_root_directory()
     fd = vim.fn.getcwd()
   end
   fd = vim.fn.fnamemodify(fd, ':p')
-  log('start to find root dir for:' .. fd)
+  log('start to find root for: ' .. fd)
   local dirs = {}
   for _, pattern in pairs(rooter_config.root_patterns) do
     local find_path = ''
@@ -249,6 +249,7 @@ local function find_root_directory()
         find_path = unify_path(find_path, ':h')
       end
       if find_path ~= unify_path(vim.fn.expand('$HOME')) then
+        log('        (' .. pattern .. '):' .. find_path)
         table.insert(dirs, find_path)
       else
       end
@@ -318,6 +319,8 @@ function M.RootchandgeCallback()
   -- this function only will be called when switch to other project.
   local path = unify_path(vim.fn.getcwd(), ':p')
   local name = vim.fn.fnamemodify(path, ':h:t')
+  log('switch to project:[' .. name .. ']')
+  log('       rootdir is:' .. path)
   local project = {
     ['path'] = path,
     ['name'] = name,
@@ -331,12 +334,16 @@ function M.RootchandgeCallback()
   for _, Callback in pairs(project_callback) do
     if type(Callback.func) == 'string' then
       if Callback.desc then
+        log('     run callback:' .. Callback.desc)
       else
+        log('     run callback:' .. Callback.func)
       end
       vim.fn.call(Callback.func, {})
     elseif type(Callback.func) == 'function' then
       if Callback.desc then
+        log('     run callback:' .. Callback.desc)
       else
+        log('     run callback:' .. tostring(Callback.func))
       end
       pcall(Callback.func)
     end
