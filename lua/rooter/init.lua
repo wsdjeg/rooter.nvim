@@ -11,6 +11,16 @@ local project_rooter_ignores = {}
 local project_callback = {}
 local rooter_config = require('rooter.config').get()
 
+local function log(msg)
+  if
+    rooter_config.logger
+    and rooter_config.logger.info
+    and type(rooter_config.logger.info) == 'function'
+  then
+    rooter_config.logger.info(msg)
+  end
+end
+
 local function exists(expr)
   return vim.fn.exists(expr) == 1
 end
@@ -217,6 +227,7 @@ local function find_root_directory()
     fd = vim.fn.getcwd()
   end
   fd = vim.fn.fnamemodify(fd, ':p')
+  log('start to find root dir for:' .. fd)
   local dirs = {}
   for _, pattern in pairs(rooter_config.root_patterns) do
     local find_path = ''
@@ -260,6 +271,7 @@ local M = {}
 
 function M.setup(opt)
   require('rooter.config').setup(opt)
+  rooter_config = require('rooter.config').get()
   local group = vim.api.nvim_create_augroup('nvim-rooter', { clear = true })
   vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter' }, {
     group = group,
