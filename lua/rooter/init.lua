@@ -79,13 +79,6 @@ local function findfile(what, where, ...)
   return file
 end
 
-local cd = 'cd'
-if exists(':tcd') then
-  cd = 'tcd'
-elseif exists(':lcd') then
-  cd = 'lcd'
-end
-
 local function is_ignored_dir(dir)
   for _, v in pairs(project_rooter_ignores) do
     if string.match(dir, v) ~= nil then
@@ -176,7 +169,7 @@ local function change_dir(dir)
   if not dir or dir == unify_path(vim.fn.getcwd()) then
     return false
   else
-    vim.cmd(cd .. ' ' .. dir)
+    vim.cmd(rooter_config.command .. ' ' .. dir)
     return true
   end
 end
@@ -303,7 +296,7 @@ end
 function M.open(project)
   local path = project_paths[project]['path']
   vim.cmd('tabnew')
-  vim.cmd(cd .. ' ' .. path)
+  vim.cmd(rooter_config.command .. ' ' .. path)
 end
 
 function M.current_name()

@@ -5,6 +5,7 @@ local default = {
   outermost = true,
   enable_cache = true,
   project_non_root = '',
+  command = 'lcd'
 }
 
 local config = vim.deepcopy(default)
