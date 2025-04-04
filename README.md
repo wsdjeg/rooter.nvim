@@ -2,7 +2,17 @@
 
 `rooter.nvim` changes the working directory to the project root when you open a file. It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
 
-## Install
+<!-- vim-markdown-toc GFM -->
+
+* [Installation](#installation)
+* [Setup](#setup)
+* [Telescope extension](#telescope-extension)
+* [Debug](#debug)
+* [Self-Promotion](#self-promotion)
+
+<!-- vim-markdown-toc -->
+
+## Installation
 
 using [nvim-plug](https://github.com/wsdjeg/nvim-plug)
 
@@ -81,3 +91,12 @@ and the runtime log of rooter is:
 [   rooter ] [23:22:50:576] [ Info  ] switch to project:[rooter.nvim]
 [   rooter ] [23:22:50:576] [ Info  ]        rootdir is:D:/wsdjeg/rooter.nvim/
 ```
+
+## Self-Promotion
+
+Like this plugin? Star the repository on
+GitHub.
+
+Love this plugin? Follow [me](https://wsdjeg.net/) on
+[GitHub](https://github.com/wsdjeg) and
+[Twitter](http://twitter.com/wsdtty).
