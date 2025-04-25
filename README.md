@@ -7,6 +7,7 @@
 * [Installation](#installation)
 * [Setup](#setup)
 * [Telescope extension](#telescope-extension)
+* [Callback function](#callback-function)
 * [Debug](#debug)
 * [Self-Promotion](#self-promotion)
 
@@ -51,6 +52,49 @@ This plugin also provides a telescope extension:
 ```
 
 ![Image](https://github.com/user-attachments/assets/f936176a-cace-4bac-b394-c1c11f3f71b7)
+
+## Callback function
+
+To add new callback function when project changed. You can use `rooter.reg_callback`, for example:
+
+update c code runner based on project `.clang` file.
+
+```lua
+local c_runner = {
+    exe = 'gcc',
+    targetopt = '-o',
+    usestdin = true,
+    opt = { '-std=c11', '-xc', '-' },
+}
+require('code-runner').setup({
+    runners = {
+        c = { c_runner, '#TEMP#' },
+    },
+})
+vim.keymap.set(
+    'n',
+    '<leader>lr',
+    '<cmd>lua require("code-runner").open()<cr>',
+    { silent = true }
+)
+
+-- make sure rooter.nvim plugin is loaded before code-runner
+
+local function update_clang_flag()
+    if vim.fn.filereadable('.clang') == 1 then
+        local flags = vim.fn.readfile('.clang')
+        local opt = { '-std=c11' }
+        for _, v in ipairs(flags) do
+            table.insert(opt, v)
+        end
+        table.insert(opt, '-xc')
+        table.insert(opt, '-')
+        c_runner.opt = opt
+    end
+end
+
+require('rooter').reg_callback(update_clang_flag)
+```
 
 ## Debug
 
