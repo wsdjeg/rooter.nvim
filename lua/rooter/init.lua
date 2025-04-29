@@ -259,6 +259,7 @@ end
 
 local M = {}
 
+---@param opt RooterConfig
 function M.setup(opt)
   require('rooter.config').setup(opt)
   rooter_config = require('rooter.config').get()
