@@ -12,21 +12,13 @@ local default = {
   outermost = true,
   enable_cache = true,
   project_non_root = '',
-  command = 'lcd'
+  command = 'lcd',
 }
 
----@type RooterConfig
-local config = vim.deepcopy(default)
-
 ---@param opt RooterConfig
-function M.setup(opt)
-  config = vim.tbl_deep_extend('force', default, opt or {})
-end
-
-
 ---@return RooterConfig
-function M.get()
-  return config
+function M.setup(opt)
+  return vim.tbl_deep_extend('force', default, opt or {})
 end
 
 return M

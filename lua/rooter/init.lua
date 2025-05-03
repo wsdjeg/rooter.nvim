@@ -9,12 +9,11 @@ local project_paths = {}
 local project_cache_path = vim.fn.stdpath('data') .. '/nvim-rooter.json'
 local project_rooter_ignores = {}
 local project_callback = {}
-local rooter_config = require('rooter.config').get()
+local logger = require('rooter.logger')
+local rooter_config
 
 local function log(msg)
-  if rooter_config.logger then
-    rooter_config.logger.info(msg)
-  end
+  logger.info(msg)
 end
 
 local function exists(expr)
@@ -262,13 +261,7 @@ local M = {}
 
 ---@param opt RooterConfig
 function M.setup(opt)
-  require('rooter.config').setup(opt)
-  rooter_config = require('rooter.config').get()
-  if rooter_config.enable_logger then
-    pcall(function()
-      rooter_config.logger = require('logger').derive('rooter')
-    end)
-  end
+  rooter_config = require('rooter.config').setup(opt)
   local group = vim.api.nvim_create_augroup('nvim-rooter', { clear = true })
   vim.api.nvim_create_autocmd({ 'VimEnter', 'BufEnter' }, {
     group = group,
@@ -285,8 +278,7 @@ function M.setup(opt)
       M.current_root()
     end,
   })
-  local c = require('rooter.config').get()
-  if c.enable_cache then
+  if rooter_config.enable_cache then
     load_cache()
   end
 end
@@ -380,6 +372,7 @@ function M.current_root()
     or bufname:match('^NvimTree_') -- this is for nvim-tree.nvim
     or bufname:match('^__Tagbar__') -- this is for tagbar.vim
     or vim.o.autochdir
+    or not rooter_config -- if rooter.nvim is not setup
   then
     return vim.fn.getcwd()
   end
