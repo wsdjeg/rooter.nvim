@@ -192,6 +192,7 @@ local function compare(d1, d2)
   end
 end
 
+---@return string
 local function sort_dirs(dirs)
   table.sort(dirs, compare)
   local dir = dirs[1]
@@ -202,7 +203,7 @@ local function sort_dirs(dirs)
     return dir
   end
 end
-
+---@return string
 local function find_root_directory()
   local fd = vim.fn.bufname('%')
   if fd == '' then
@@ -383,7 +384,7 @@ function M.current_root()
     return vim.fn.getcwd()
   end
   local rootdir = vim.b.rootDir or ''
-  if rootdir == '' then
+  if rootdir == '' or type(rootdir) ~= 'string' then
     rootdir = find_root_directory()
     if rootdir == nil or rootdir == '' then
       -- for no project
