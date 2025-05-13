@@ -109,6 +109,10 @@ This plugin also provides a user command `:Rooter`.
 
 `:Rooter clear`
 
+3. Delete all buffers for the specified project.
+
+`:Rooter kill project_name1 project_name2`
+
 ## Debug
 
 You can enable logger and install logger.nvim to debug this plugin:
