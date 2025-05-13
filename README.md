@@ -8,6 +8,7 @@
 * [Setup](#setup)
 * [Telescope extension](#telescope-extension)
 * [Callback function](#callback-function)
+* [Command](#command)
 * [Debug](#debug)
 * [Self-Promotion](#self-promotion)
 
@@ -95,6 +96,18 @@ end
 
 require('rooter').reg_callback(update_clang_flag)
 ```
+
+## Command
+
+This plugin also provides a user command `:Rooter`.
+
+1. switch to project root manually.
+
+`:Rooter`
+
+2. clear cached projects.
+
+`:Rooter clear`
 
 ## Debug
 
