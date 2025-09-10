@@ -1,16 +1,18 @@
 # rooter.nvim
 
-`rooter.nvim` changes the working directory to the project root when you open a file. It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
+**rooter.nvim** changes the working directory to the project root when you open a file. It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
+
+This plugin also provides a telescope extension to fuzzy find recently opened project.
 
 <!-- vim-markdown-toc GFM -->
 
-* [Installation](#installation)
-* [Setup](#setup)
-* [Telescope extension](#telescope-extension)
-* [Callback function](#callback-function)
-* [Command](#command)
-* [Debug](#debug)
-* [Self-Promotion](#self-promotion)
+- [Installation](#installation)
+- [Setup](#setup)
+- [Telescope extension](#telescope-extension)
+- [Callback function](#callback-function)
+- [Command](#command)
+- [Debug](#debug)
+- [Self-Promotion](#self-promotion)
 
 <!-- vim-markdown-toc -->
 
@@ -159,5 +161,4 @@ Like this plugin? Star the repository on
 GitHub.
 
 Love this plugin? Follow [me](https://wsdjeg.net/) on
-[GitHub](https://github.com/wsdjeg) and
-[Twitter](http://twitter.com/wsdtty).
+[GitHub](https://github.com/wsdjeg).
