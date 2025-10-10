@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.1.0...v1.2.0) (2025-10-10)
+
+
+### Features
+
+* add source for picker.nvim ([7513a15](https://github.com/wsdjeg/rooter.nvim/commit/7513a15dcbdfe7fc46bdfcb598e0689cd907911d))
+* enable preview of picker source ([96ab1a1](https://github.com/wsdjeg/rooter.nvim/commit/96ab1a14bb89bcfe9536cc98bebf7e38543f6b51))
+
 ## [1.1.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.0.0...v1.1.0) (2025-10-01)
 
 
