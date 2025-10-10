@@ -9,6 +9,7 @@ This plugin also provides a telescope extension to fuzzy find recently opened pr
 - [Installation](#installation)
 - [Setup](#setup)
 - [Telescope extension](#telescope-extension)
+- [Picker.nvim extension](#pickernvim-extension)
 - [Callback function](#callback-function)
 - [Command](#command)
 - [Debug](#debug)
@@ -55,6 +56,12 @@ This plugin also provides a telescope extension:
 ```
 
 ![Image](https://github.com/user-attachments/assets/f936176a-cace-4bac-b394-c1c11f3f71b7)
+
+## Picker.nvim extension
+
+```
+:Picker project
+```
 
 ## Callback function
 
