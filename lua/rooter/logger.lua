@@ -4,7 +4,7 @@ for _, f in ipairs({ 'info', 'debug', 'warn', 'error' }) do
     M[f] = function(msg)
         if not logger then
             pcall(function()
-                logger = require('logger').derive('flygrep')
+                logger = require('logger').derive('rooter')
                 logger[f](msg)
             end)
         else
