@@ -1,7 +1,7 @@
 local M = {}
 local rooter = require('rooter')
 
-local previewer = require("picker.previewer.file")
+local previewer = require('picker.previewer.file')
 
 function M.get()
     local p = {}
@@ -15,6 +15,19 @@ function M.get()
     end, p)
 end
 
+M.actions = function()
+    return {
+        ['<C-f>'] = function(entry)
+            vim.cmd.lcd(entry.value.path)
+            vim.cmd('Picker files')
+        end,
+        ['<C-d>'] = function(entry)
+            local projects = rooter.get_project_history()
+            projects[entry.value.path] = nil
+        end,
+    }
+end
+
 function M.default_action(entry)
     rooter.open(entry.value.path)
 end
@@ -23,7 +36,7 @@ M.preview_win = true
 
 ---@field item PickerItem
 function M.preview(item, win, buf)
-	previewer.preview(item.value.path .. '/README.md', win, buf)
+    previewer.preview(item.value.path .. '/README.md', win, buf)
 end
 
 return M

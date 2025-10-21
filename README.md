@@ -63,6 +63,13 @@ This plugin also provides a telescope extension:
 :Picker project
 ```
 
+key bindings for picker project:
+
+| key binding | description        |
+| ----------- | ------------------ |
+| `<C-f>`     | file project files |
+| `<C-d>`     | delete project     |
+
 ## Callback function
 
 To add new callback function when project changed. You can use `rooter.reg_callback`, for example:
