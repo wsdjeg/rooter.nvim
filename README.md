@@ -65,10 +65,11 @@ This plugin also provides a telescope extension:
 
 key bindings for picker project:
 
-| key binding | description        |
-| ----------- | ------------------ |
-| `<C-f>`     | file project files |
-| `<C-d>`     | delete project     |
+| key binding | description                                                                            |
+| ----------- | -------------------------------------------------------------------------------------- |
+| `<C-f>`     | file project files                                                                     |
+| `<C-d>`     | delete project                                                                         |
+| `<C-s>`     | search text in project, require [flygrep.nvim](https://github.com/wsdjeg/flygrep.nvim) |
 
 ## Callback function
 

@@ -16,7 +16,7 @@ function M.get()
 end
 
 M.actions = function()
-    return {
+    local actions = {
         ['<C-f>'] = function(entry)
             vim.cmd.lcd(entry.value.path)
             vim.cmd('Picker files')
@@ -26,6 +26,13 @@ M.actions = function()
             projects[entry.value.path] = nil
         end,
     }
+    local ok, flygrep = pcall(require, 'flygrep')
+    if ok then
+        actions['<C-s>'] = function(entry)
+            flygrep.open({ cwd = entry.value.path })
+        end
+    end
+    return actions
 end
 
 function M.default_action(entry)
