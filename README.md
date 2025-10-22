@@ -59,6 +59,8 @@ This plugin also provides a telescope extension:
 
 ## Picker.nvim extension
 
+![picker project](https://github.com/user-attachments/assets/4a53d99c-5319-4f79-afff-0f0f4d6b4e3f)
+
 ```
 :Picker project
 ```

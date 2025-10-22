@@ -1,5 +1,6 @@
 local M = {}
 local rooter = require('rooter')
+local util = require('rooter.util')
 
 local previewer = require('picker.previewer.file')
 
@@ -11,7 +12,22 @@ function M.get()
         table.insert(p, k)
     end
     return vim.tbl_map(function(t)
-        return { value = t, str = t.name }
+        -- return { value = t, str = t.name }
+        local item = { value = t }
+        local idx = 0
+        item.str = '[' .. t.name .. ']'
+        item.str = item.str .. string.rep(' ', math.max(25 - vim.fn.strdisplaywidth(item.str), 0))
+        item.highlight = { { idx, #item.str, 'String' } }
+        idx = #item.str
+        item.str = item.str .. util.unify_path(t.path, ':~')
+        item.highlight[#item.highlight + 1] = { idx, #item.str, 'Normal' }
+        idx = #item.str
+        item.str = item.str
+            .. string.rep(' ', math.max(vim.o.columns - 100 - vim.fn.strdisplaywidth(item.str), 0))
+        item.str = item.str .. '<' .. vim.fn.strftime('%Y-%m-%d %T', t.opened_time) .. '>'
+        item.highlight[#item.highlight + 1] = { idx, #item.str, 'Comment' }
+        idx = #item.str
+        return item
     end, p)
 end
 
