@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.1.0...v1.2.0) (2025-10-22)
+
+
+### Features
+
+* add `ctrl-s` for flygrep ([f973353](https://github.com/wsdjeg/rooter.nvim/commit/f973353549f3f5f45d0a87fa1df8b7099b63a9a2))
+* add colored project menu ([a8e1b3f](https://github.com/wsdjeg/rooter.nvim/commit/a8e1b3fd5e9e1f458a1c62da73336a0a3b6a65ab))
+* add ctrl-d/f key binding ([0879f72](https://github.com/wsdjeg/rooter.nvim/commit/0879f72946b008ae9d612ee0499b242b655aa17b))
+* add source for picker.nvim ([7513a15](https://github.com/wsdjeg/rooter.nvim/commit/7513a15dcbdfe7fc46bdfcb598e0689cd907911d))
+* enable preview of picker source ([96ab1a1](https://github.com/wsdjeg/rooter.nvim/commit/96ab1a14bb89bcfe9536cc98bebf7e38543f6b51))
+
+
+### Bug Fixes
+
+* fix logger name ([f155ad0](https://github.com/wsdjeg/rooter.nvim/commit/f155ad058184e69ae04b46ebbc2849096273cad0))
+
 ## [1.1.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.0.0...v1.1.0) (2025-10-01)
 
 
