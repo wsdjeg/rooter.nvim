@@ -11,6 +11,10 @@ function M.get()
     for _, k in pairs(projects) do
         table.insert(p, k)
     end
+    -- sort defalt order
+    table.sort(p, function(a, b)
+        return a.opened_time > b.opened_time
+    end)
     return vim.tbl_map(function(t)
         -- return { value = t, str = t.name }
         local item = { value = t }
