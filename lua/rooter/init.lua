@@ -284,7 +284,13 @@ function M.setup(opt)
 end
 
 function M.list()
-    vim.cmd('Telescope project')
+    if vim.fn.exists(':Picker') == 2 then
+        vim.cmd('Picker project')
+    elseif vim.fn.exists(':Telescope') == 2
+        vim.cmd('Telescope project')
+    else
+        vim.notify('need picker.nvim or telescope.nvim')
+    end
 end
 
 function M.open(project)
