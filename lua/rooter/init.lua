@@ -286,7 +286,7 @@ end
 function M.list()
     if vim.fn.exists(':Picker') == 2 then
         vim.cmd('Picker project')
-    elseif vim.fn.exists(':Telescope') == 2
+    elseif vim.fn.exists(':Telescope') == 2 then
         vim.cmd('Telescope project')
     else
         vim.notify('need picker.nvim or telescope.nvim')
