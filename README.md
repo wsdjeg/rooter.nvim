@@ -1,23 +1,28 @@
 # rooter.nvim
 
-**rooter.nvim** changes the working directory to the project root when you open a file. It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
+**rooter.nvim** changes the working directory to the project root when you open a file.
+It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
 
 This plugin also provides a telescope extension to fuzzy find recently opened project.
 
 <!-- vim-markdown-toc GFM -->
 
-- [Installation](#installation)
-- [Setup](#setup)
-- [Telescope extension](#telescope-extension)
-- [Picker.nvim extension](#pickernvim-extension)
-- [Callback function](#callback-function)
-- [Command](#command)
-- [Debug](#debug)
-- [Self-Promotion](#self-promotion)
+- [📦 Installation](#-installation)
+- [🔧 Configuration](#-configuration)
+- [⚙️ Basic Usage](#-basic-usage)
+    - [Telescope extension](#telescope-extension)
+    - [Picker.nvim extension](#pickernvim-extension)
+    - [Callback function](#callback-function)
+    - [Commands](#commands)
+- [🐛 Debug](#-debug)
+- [💬 Feedback](#-feedback)
+- [🙏 Credits](#-credits)
+- [📣 Self-Promotion](#-self-promotion)
+- [📄 License](#-license)
 
 <!-- vim-markdown-toc -->
 
-## Installation
+## 📦 Installation
 
 using [nvim-plug](https://github.com/wsdjeg/nvim-plug)
 
@@ -34,7 +39,7 @@ require('plug').add({
 })
 ```
 
-## Setup
+## 🔧 Configuration
 
 ```lua
 require('rooter').setup({
@@ -47,7 +52,9 @@ require('rooter').setup({
 })
 ```
 
-## Telescope extension
+## ⚙️ Basic Usage
+
+### Telescope extension
 
 This plugin also provides a telescope extension:
 
@@ -57,7 +64,7 @@ This plugin also provides a telescope extension:
 
 ![Image](https://github.com/user-attachments/assets/f936176a-cace-4bac-b394-c1c11f3f71b7)
 
-## Picker.nvim extension
+### Picker.nvim extension
 
 ![picker project](https://github.com/user-attachments/assets/4a53d99c-5319-4f79-afff-0f0f4d6b4e3f)
 
@@ -73,7 +80,7 @@ key bindings for picker project:
 | `<C-d>`     | delete project                                                                         |
 | `<C-s>`     | search text in project, require [flygrep.nvim](https://github.com/wsdjeg/flygrep.nvim) |
 
-## Callback function
+### Callback function
 
 To add new callback function when project changed. You can use `rooter.reg_callback`, for example:
 
@@ -116,7 +123,7 @@ end
 require('rooter').reg_callback(update_clang_flag)
 ```
 
-## Command
+### Commands
 
 This plugin also provides a user command `:Rooter`.
 
@@ -132,7 +139,7 @@ This plugin also provides a user command `:Rooter`.
 
 `:Rooter kill project_name1 project_name2`
 
-## Debug
+## 🐛 Debug
 
 You can enable logger and install logger.nvim to debug this plugin:
 
@@ -172,10 +179,22 @@ and the runtime log of rooter is:
 [   rooter ] [23:22:50:576] [ Info  ]        rootdir is:D:/wsdjeg/rooter.nvim/
 ```
 
-## Self-Promotion
+## 💬 Feedback
+
+If you encounter any bugs or have suggestions, please file an issue in the [issue tracker](https://github.com/wsdjeg/rooter.nvim/issues)
+
+## 🙏 Credits
+
+- [airblade/vim-rooter](https://github.com/airblade/vim-rooter)
+
+## 📣 Self-Promotion
 
 Like this plugin? Star the repository on
 GitHub.
 
 Love this plugin? Follow [me](https://wsdjeg.net/) on
 [GitHub](https://github.com/wsdjeg).
+
+## 📄 License
+
+Licensed under GPL-3.0.
