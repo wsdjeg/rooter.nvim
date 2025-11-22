@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.2.0...v1.3.0) (2025-11-22)
+
+
+### Features
+
+* sort project list ([59284dd](https://github.com/wsdjeg/rooter.nvim/commit/59284dd78209a5cf22e0d948af2c80944e24d56c))
+
+
+### Bug Fixes
+
+* change default path width ([dfbdee3](https://github.com/wsdjeg/rooter.nvim/commit/dfbdee32faf4e4b7810de604207741c19ef30cd9))
+* fix missing then ([e05d328](https://github.com/wsdjeg/rooter.nvim/commit/e05d3280e852a64a3e98e731250052296ad94234))
+* fix rooter.list() ([f3adfa0](https://github.com/wsdjeg/rooter.nvim/commit/f3adfa00c735f26e44db864717f938ae2483c4e7))
+
 ## [1.2.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.1.0...v1.2.0) (2025-10-22)
 
 
