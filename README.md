@@ -7,6 +7,7 @@ This plugin also provides a telescope extension to fuzzy find recently opened pr
 
 <!-- vim-markdown-toc GFM -->
 
+- [✨ Features](#-features)
 - [📦 Installation](#-installation)
 - [🔧 Configuration](#-configuration)
 - [⚙️ Basic Usage](#-basic-usage)
@@ -21,6 +22,18 @@ This plugin also provides a telescope extension to fuzzy find recently opened pr
 - [📄 License](#-license)
 
 <!-- vim-markdown-toc -->
+
+## ✨ Features
+
+- Automatic project root detection  
+- Caching for better performance  
+- Outermost directory support  
+- Flexible behavior for non-project files  
+- Optional logging support  
+- Callback APIs  
+- Command-line interface  
+- Telescope integration  
+- Picker.nvim integration  
 
 ## 📦 Installation
 
