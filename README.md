@@ -186,6 +186,7 @@ If you encounter any bugs or have suggestions, please file an issue in the [issu
 ## 🙏 Credits
 
 - [airblade/vim-rooter](https://github.com/airblade/vim-rooter)
+- [DrKJeff16/project.nvim](https://github.com/DrKJeff16/project.nvim)
 
 ## 📣 Self-Promotion
 
