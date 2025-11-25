@@ -5,6 +5,12 @@ It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
 
 This plugin also provides a telescope extension to fuzzy find recently opened project.
 
+[![GitHub License](https://img.shields.io/github/license/wsdjeg/rooter.nvim)](LICENSE)
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/issues)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/m/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/commits/master/)
+[![GitHub Release](https://img.shields.io/github/v/release/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/releases)
+[![luarocks](https://img.shields.io/luarocks/v/wsdjeg/rooter.nvim)](https://luarocks.org/modules/wsdjeg/rooter.nvim)
+
 <!-- vim-markdown-toc GFM -->
 
 - [✨ Features](#-features)
