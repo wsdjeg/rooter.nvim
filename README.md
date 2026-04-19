@@ -51,7 +51,7 @@ require('plug').add({
     'wsdjeg/rooter.nvim',
     config = function()
       require('rooter').setup({
-        root_pattern = { '.git/' },
+        root_patterns = { '.git/' },
       })
     end,
   }
