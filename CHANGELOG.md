@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/wsdjeg/rooter.nvim/compare/v1.3.0...v1.3.1) (2026-04-19)
+
+
+### Bug Fixes
+
+* typo in readme s/root_pattern/root_patterns ([584d7dd](https://github.com/wsdjeg/rooter.nvim/commit/584d7dd2c53b6607ce33bd93a6feb496de853a78))
+
 ## [1.3.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.2.0...v1.3.0) (2025-11-22)
 
 
