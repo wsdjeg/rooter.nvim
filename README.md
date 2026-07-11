@@ -3,7 +3,7 @@
 **rooter.nvim** changes the working directory to the project root when you open a file.
 It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
 
-This plugin also provides a telescope extension to fuzzy find recently opened project.
+This plugin also provides telescope and picker.nvim extensions to fuzzy find recently opened projects.
 
 [![Run Tests](https://github.com/wsdjeg/rooter.nvim/actions/workflows/test.yml/badge.svg)](https://github.com/wsdjeg/rooter.nvim/actions/workflows/test.yml)
 [![GitHub License](https://img.shields.io/github/license/wsdjeg/rooter.nvim)](LICENSE)
@@ -18,10 +18,11 @@ This plugin also provides a telescope extension to fuzzy find recently opened pr
 - [📦 Installation](#-installation)
 - [🔧 Configuration](#-configuration)
 - [⚙️ Basic Usage](#-basic-usage)
+    - [Commands](#commands)
     - [Telescope extension](#telescope-extension)
     - [Picker.nvim extension](#pickernvim-extension)
     - [Callback function](#callback-function)
-    - [Commands](#commands)
+    - [API](#api)
 - [🐛 Debug](#-debug)
 - [💬 Feedback](#-feedback)
 - [🙏 Credits](#-credits)
@@ -32,15 +33,16 @@ This plugin also provides a telescope extension to fuzzy find recently opened pr
 
 ## ✨ Features
 
-- Automatic project root detection  
-- Caching for better performance  
-- Outermost directory support  
-- Flexible behavior for non-project files  
-- Optional logging support  
-- Callback APIs  
-- Command-line interface  
-- Telescope integration  
-- Picker.nvim integration  
+- Automatic project root detection on `BufEnter` / `VimEnter`
+- Re-detect root on `BufWritePost` (e.g. after creating a new `.git/`)
+- Project history caching to disk for persistence across sessions
+- Outermost vs nearest root directory support
+- Flexible behavior for non-project files (`''`, `'home'`, or `'current'`)
+- Automatic logging via [logger.nvim](https://github.com/wsdjeg/logger.nvim) (optional dependency)
+- Callback APIs for project switch events
+- Command-line interface (`:Rooter`)
+- Telescope integration
+- Picker.nvim integration
 
 ## 📦 Installation
 
@@ -66,17 +68,47 @@ require('rooter').setup({
   root_patterns = { '.git/' },
   outermost = true,
   enable_cache = true,
-  project_non_root = '',  -- this can be '', 'home' or 'current'
-  enable_logger = true,   -- enable runtime log via logger.nvim
-  command = 'lcd',        -- cd, tcd or lcd
+  project_non_root = '',
+  command = 'lcd',
+})
+```
+
+| Option            | Type             | Default       | Description                                                                                          |
+| ----------------- | ---------------- | ------------- | ---------------------------------------------------------------------------------------------------- |
+| `root_patterns`   | `table<string>`  | `{ '.git/' }` | Patterns to identify project root. Directories end with `/`, files do not.                           |
+| `outermost`       | `boolean`        | `true`        | When `true`, find the outermost matching directory. When `false`, find the nearest (innermost).      |
+| `enable_cache`    | `boolean`        | `true`        | Persist project history to `stdpath('data')/nvim-rooter.json` for cross-session persistence.         |
+| `project_non_root`| `string`         | `''`          | Behavior for files outside any project: `''` = keep cwd, `'home'` = switch to `$HOME`, `'current'` = switch to file's directory. |
+| `command`         | `string`         | `'lcd'`       | Vim command used to change directory: `'cd'`, `'tcd'`, or `'lcd'`.                                   |
+
+### Example: multiple patterns
+
+```lua
+require('rooter').setup({
+  root_patterns = { '.git/', '.hg/', 'Cargo.toml', 'go.mod', 'package.json' },
+  outermost = false,  -- find nearest root
+  command = 'tcd',    -- use tab-local cd
 })
 ```
 
 ## ⚙️ Basic Usage
 
+Once `setup()` is called, rooter.nvim automatically changes the working directory
+whenever you open a file or switch buffers. You can also use the commands and APIs below.
+
+### Commands
+
+This plugin provides a user command `:Rooter`:
+
+| Command                              | Description                                      |
+| ------------------------------------ | ------------------------------------------------ |
+| `:Rooter`                            | Manually trigger root detection for current buffer. |
+| `:Rooter clear`                      | Clear all cached projects.                       |
+| `:Rooter kill project1 project2`     | Delete all buffers belonging to the specified project(s). |
+
 ### Telescope extension
 
-This plugin also provides a telescope extension:
+Requires [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim).
 
 ```
 :Telescope project
@@ -84,7 +116,12 @@ This plugin also provides a telescope extension:
 
 ![Image](https://github.com/user-attachments/assets/f936176a-cace-4bac-b394-c1c11f3f71b7)
 
+Lists all cached projects sorted by last opened time. Press `<CR>` to open a
+project in a new tab.
+
 ### Picker.nvim extension
+
+Requires [picker.nvim](https://github.com/wsdjeg/picker.nvim).
 
 ![picker project](https://github.com/user-attachments/assets/4a53d99c-5319-4f79-afff-0f0f4d6b4e3f)
 
@@ -92,21 +129,22 @@ This plugin also provides a telescope extension:
 :Picker project
 ```
 
-key bindings for picker project:
+Key bindings for picker project:
 
-| key binding | description                                                                            |
+| Key binding | Description                                                                            |
 | ----------- | -------------------------------------------------------------------------------------- |
-| `<C-f>`     | file project files                                                                     |
-| `<C-d>`     | delete project                                                                         |
-| `<C-s>`     | search text in project, require [flygrep.nvim](https://github.com/wsdjeg/flygrep.nvim) |
+| `<CR>`      | Open project in a new tab (default action)                                             |
+| `<C-f>`     | Browse project files                                                                   |
+| `<C-d>`     | Delete project from history                                                            |
+| `<C-s>`     | Search text in project, requires [flygrep.nvim](https://github.com/wsdjeg/flygrep.nvim) |
 
 ### Callback function
 
-To add new callback function when project changed. You can use `rooter.reg_callback`, for example:
-
-update c code runner based on project `.clang` file.
+To run custom logic when the project changes, register a callback with
+`rooter.reg_callback`:
 
 ```lua
+-- Update code-runner config based on project's .clang file
 local c_runner = {
     exe = 'gcc',
     targetopt = '-o',
@@ -118,14 +156,6 @@ require('code-runner').setup({
         c = { c_runner, '#TEMP#' },
     },
 })
-vim.keymap.set(
-    'n',
-    '<leader>lr',
-    '<cmd>lua require("code-runner").open()<cr>',
-    { silent = true }
-)
-
--- make sure rooter.nvim plugin is loaded before code-runner
 
 local function update_clang_flag()
     if vim.fn.filereadable('.clang') == 1 then
@@ -140,28 +170,31 @@ local function update_clang_flag()
     end
 end
 
-require('rooter').reg_callback(update_clang_flag)
+require('rooter').reg_callback(update_clang_flag, 'update clang flags')
 ```
 
-### Commands
+The callback receives no arguments. It is called via `pcall` so errors won't
+crash the root detection flow. You can also pass a Vimscript function name as
+a string.
 
-This plugin also provides a user command `:Rooter`.
+### API
 
-1. switch to project root manually.
-
-`:Rooter`
-
-2. clear cached projects.
-
-`:Rooter clear`
-
-3. Delete all buffers for the specified project.
-
-`:Rooter kill project_name1 project_name2`
+| Function                                  | Description                                                      |
+| ----------------------------------------- | ---------------------------------------------------------------- |
+| `setup(opt)`                              | Initialize rooter.nvim with config options and set up autocmds.  |
+| `current_root()`                          | Detect and switch to the project root for the current buffer. Returns the root path. |
+| `current_name()`                          | Returns the current project name (from `b:rooter_project_name`). |
+| `list()`                                  | Open the project picker (Picker.nvim or Telescope, whichever is available). |
+| `open(project_path)`                      | Open a project by its path in a new tab.                         |
+| `clear()`                                 | Clear all cached projects and write empty cache to disk.         |
+| `kill_project(name)`                      | Delete all buffers belonging to the named project.               |
+| `reg_callback(func, desc?)`               | Register a callback function (or Vimscript function name) to run on project switch. `desc` is an optional description for logging. |
+| `get_project_history()`                   | Returns the table of all cached projects.                        |
 
 ## 🐛 Debug
 
-You can enable logger and install logger.nvim to debug this plugin:
+Install [logger.nvim](https://github.com/wsdjeg/logger.nvim) as a dependency.
+Logging is automatically enabled when logger.nvim is available — no extra config needed.
 
 ```lua
 require('plug').add({
@@ -169,8 +202,7 @@ require('plug').add({
     'wsdjeg/rooter.nvim',
     config = function()
       require('rooter').setup({
-        root_pattern = { '.git/' },
-        enable_logger = true,
+        root_patterns = { '.git/' },
       })
     end,
     depends = {
@@ -190,7 +222,7 @@ require('plug').add({
 })
 ```
 
-and the runtime log of rooter is:
+Sample runtime log:
 
 ```
 [   rooter ] [23:22:50:576] [ Info  ] start to find root for: D:/wsdjeg/rooter.nvim/lua/rooter/init.lua
@@ -219,3 +251,4 @@ Love this plugin? Follow [me](https://wsdjeg.net/) on
 ## 📄 License
 
 Licensed under GPL-3.0.
+
