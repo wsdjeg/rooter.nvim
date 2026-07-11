@@ -5,6 +5,7 @@ It is inspired by [vim-rooter](https://github.com/airblade/vim-rooter).
 
 This plugin also provides a telescope extension to fuzzy find recently opened project.
 
+[![Run Tests](https://github.com/wsdjeg/rooter.nvim/actions/workflows/test.yml/badge.svg)](https://github.com/wsdjeg/rooter.nvim/actions/workflows/test.yml)
 [![GitHub License](https://img.shields.io/github/license/wsdjeg/rooter.nvim)](LICENSE)
 [![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/issues)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/commits/master/)
