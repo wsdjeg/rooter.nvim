@@ -69,5 +69,40 @@ function TestRooter:test_reg_callback_with_desc()
   lu.assertTrue(true)
 end
 
+function TestRooter:test_callback_receives_project_object()
+  local received = nil
+  rooter.reg_callback(function(project)
+    received = project
+  end, 'capture project object')
+  rooter.RootchandgeCallback()
+  lu.assertNotNil(received)
+  lu.assertEquals(type(received), 'table')
+  lu.assertEquals(type(received.path), 'string')
+  lu.assertNotEquals(received.path, '')
+  lu.assertEquals(type(received.name), 'string')
+  lu.assertNotEquals(received.name, '')
+  lu.assertEquals(type(received.opened_time), 'number')
+end
+
+function TestRooter:test_callback_no_args_still_works()
+  local called = false
+  rooter.reg_callback(function()
+    called = true
+  end, 'no args callback')
+  rooter.RootchandgeCallback()
+  lu.assertTrue(called)
+end
+
+function TestRooter:test_callback_project_matches_current_root()
+  local received = nil
+  rooter.reg_callback(function(project)
+    received = project
+  end, 'check root path')
+  rooter.RootchandgeCallback()
+  -- project.path is the unified cwd with trailing separator
+  local cwd = vim.fn.fnamemodify(vim.fn.getcwd(), ':p')
+  lu.assertEquals(received.path, cwd)
+end
+
 return TestRooter
 

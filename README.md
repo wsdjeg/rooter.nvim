@@ -22,6 +22,7 @@ This plugin also provides telescope and picker.nvim extensions to fuzzy find rec
     - [Telescope extension](#telescope-extension)
     - [Picker.nvim extension](#pickernvim-extension)
     - [Callback function](#callback-function)
+        - [Per-project configuration](#per-project-configuration)
     - [API](#api)
 - [🐛 Debug](#-debug)
 - [💬 Feedback](#-feedback)
@@ -173,9 +174,55 @@ end
 require('rooter').reg_callback(update_clang_flag, 'update clang flags')
 ```
 
-The callback receives no arguments. It is called via `pcall` so errors won't
-crash the root detection flow. You can also pass a Vimscript function name as
-a string.
+The callback receives the current project object:
+
+| Field         | Description                                       |
+| ------------- | ------------------------------------------------- |
+| `path`        | Absolute root path (with trailing `/`)            |
+| `name`        | Project name (same as `b:rooter_project_name`)    |
+| `opened_time` | Timestamp when the project was opened             |
+
+Callbacks are called via `pcall` so errors won't crash the root detection flow.
+You can also pass a Vimscript function name as a string; it receives the project
+as a dict argument.
+
+#### Per-project configuration
+
+Per-project settings can be implemented right inside the callback, by matching
+`project.name` (or `project.path` for an exact match):
+
+```lua
+-- Per-project options: map project name -> option table
+local project_options = {
+    ['my-blog'] = {
+        shiftwidth = 2,
+        expandtab = true,
+        makeprg = 'hugo server',
+    },
+    ['dotfiles'] = {
+        shiftwidth = 4,
+    },
+}
+
+-- Options applied when entering a project that is not in the table above
+local default_options = {
+    shiftwidth = 4,
+}
+
+local function apply_options(opts)
+    for key, value in pairs(opts) do
+        vim.opt[key] = value
+    end
+end
+
+require('rooter').reg_callback(function(project)
+    -- project = { path = '/home/me/my-blog/', name = 'my-blog', opened_time = 1712345678 }
+    apply_options(project_options[project.name] or default_options)
+end, 'per-project options')
+```
+
+Of course you can do much more than options, for example loading a project-local
+keymap file, starting an LSP server only for certain projects, etc.
 
 ### API
 
@@ -188,7 +235,7 @@ a string.
 | `open(project_path)`                      | Open a project by its path in a new tab.                         |
 | `clear()`                                 | Clear all cached projects and write empty cache to disk.         |
 | `kill_project(name)`                      | Delete all buffers belonging to the named project.               |
-| `reg_callback(func, desc?)`               | Register a callback function (or Vimscript function name) to run on project switch. `desc` is an optional description for logging. |
+| `reg_callback(func, desc?)`               | Register a callback function (or Vimscript function name) to run on project switch. The callback receives the project object (`path`, `name`, `opened_time`). `desc` is an optional description for logging. |
 | `get_project_history()`                   | Returns the table of all cached projects.                        |
 
 ## 🐛 Debug

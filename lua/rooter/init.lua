@@ -314,6 +314,10 @@ function M.RootchandgeCallback()
     local name = vim.fn.fnamemodify(path, ':h:t')
     log('switch to project:[' .. name .. ']')
     log('       rootdir is:' .. path)
+    ---@class RooterProject
+    ---@field path string absolute root path
+    ---@field name string project name
+    ---@field opened_time number timestamp when the project was opened
     local project = {
         ['path'] = path,
         ['name'] = name,
@@ -331,14 +335,14 @@ function M.RootchandgeCallback()
             else
                 log('     run callback:' .. Callback.func)
             end
-            vim.fn.call(Callback.func, {})
+            vim.fn.call(Callback.func, { project })
         elseif type(Callback.func) == 'function' then
             if Callback.desc then
                 log('     run callback:' .. Callback.desc)
             else
                 log('     run callback:' .. tostring(Callback.func))
             end
-            pcall(Callback.func)
+            pcall(Callback.func, project)
         end
     end
 end
