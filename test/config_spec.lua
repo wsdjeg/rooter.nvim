@@ -13,11 +13,32 @@ function TestConfig:test_default_config()
   lu.assertEquals(cfg.command, 'lcd')
 end
 
+function TestConfig:test_default_exclude_patterns()
+  local cfg = config.setup()
+  lu.assertEquals(cfg.exclude_patterns, {
+    '%[denite%]',
+    'denite%-filter',
+    '%[defx%]',
+    '^git://',
+    '^neo%-tree',
+    '^NvimTree_',
+    '^__Tagbar__',
+  })
+end
+
 function TestConfig:test_custom_root_patterns()
   local cfg = config.setup({
     root_patterns = { '.git/', 'Makefile', 'package.json' },
   })
   lu.assertEquals(cfg.root_patterns, { '.git/', 'Makefile', 'package.json' })
+end
+
+function TestConfig:test_custom_exclude_patterns_replaces_defaults()
+  local cfg = config.setup({
+    exclude_patterns = { '^myplugin' },
+  })
+  -- list options are replaced as a whole, no leftover default entries
+  lu.assertEquals(cfg.exclude_patterns, { '^myplugin' })
 end
 
 function TestConfig:test_custom_outermost()
@@ -53,6 +74,14 @@ function TestConfig:test_partial_override_keeps_defaults()
   -- default fields preserved
   lu.assertEquals(cfg.root_patterns, { '.git/' })
   lu.assertEquals(cfg.enable_cache, true)
+end
+
+function TestConfig:test_setup_does_not_mutate_default()
+  local first = config.setup({ root_patterns = { 'Makefile' } })
+  local second = config.setup({})
+  -- the shared default table must stay intact
+  lu.assertEquals(second.root_patterns, { '.git/' })
+  lu.assertNotEquals(first.root_patterns, second.root_patterns)
 end
 
 return TestConfig
