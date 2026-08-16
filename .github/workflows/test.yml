@@ -17,11 +17,11 @@ jobs:
     strategy:
       matrix:
         nvim-version: ['stable', 'nightly']
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Install Neovim
         uses: rhysd/action-setup-vim@v1
         with:
@@ -37,8 +37,11 @@ jobs:
         uses: actions/cache@v4
         with:
           path: test/.deps
-          key: test-deps-luaunit
+          key: test-deps-luaunit-luacov
 
       - name: Run tests
         run: make test
+
+      - name: Check 100% coverage
+        run: make coverage
 
