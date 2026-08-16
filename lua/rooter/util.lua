@@ -1,13 +1,15 @@
 local M = {}
 
-local is_win = vim.fn.has('win32') == 1
+-- internal flag, exposed for tests so the win32 branch can be covered on unix
+M._is_win = vim.fn.has('win32') == 1
+
 M.unify_path = function(_path, ...)
   local mod = select(1, ...)
   if mod == nil then
     mod = ':p'
   end
   local path = vim.fn.fnamemodify(_path, mod .. ':gs?[\\\\/]?/?')
-  if is_win then
+  if M._is_win then
     local re = vim.regex('^[a-zA-Z]:/')
     if re:match_str(path) then
       path = string.upper(string.sub(path, 1, 1)) .. string.sub(path, 2)
@@ -22,3 +24,4 @@ M.unify_path = function(_path, ...)
   end
 end
 return M
+
