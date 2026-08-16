@@ -7,7 +7,7 @@ This plugin also provides telescope and picker.nvim extensions to fuzzy find rec
 
 [![Run Tests](https://github.com/wsdjeg/rooter.nvim/actions/workflows/test.yml/badge.svg)](https://github.com/wsdjeg/rooter.nvim/actions/workflows/test.yml)
 [![GitHub License](https://img.shields.io/github/license/wsdjeg/rooter.nvim)](LICENSE)
-[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/issues)
+[![GitHub Issues or PRs](https://img.shields.io/github/issues/wsdjeg/rooter.nvim/issues)](https://github.com/wsdjeg/rooter.nvim/issues)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/m/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/commits/master/)
 [![GitHub Release](https://img.shields.io/github/v/release/wsdjeg/rooter.nvim)](https://github.com/wsdjeg/rooter.nvim/releases)
 [![luarocks](https://img.shields.io/luarocks/v/wsdjeg/rooter.nvim)](https://luarocks.org/modules/wsdjeg/rooter.nvim)
@@ -24,6 +24,7 @@ This plugin also provides telescope and picker.nvim extensions to fuzzy find rec
     - [Callback function](#callback-function)
         - [Per-project configuration](#per-project-configuration)
     - [API](#api)
+- [🧪 Development](#-development)
 - [🐛 Debug](#-debug)
 - [💬 Feedback](#-feedback)
 - [🙏 Credits](#-credits)
@@ -39,6 +40,8 @@ This plugin also provides telescope and picker.nvim extensions to fuzzy find rec
 - Project history caching to disk for persistence across sessions
 - Outermost vs nearest root directory support
 - Flexible behavior for non-project files (`''`, `'home'`, or `'current'`)
+- Configurable buffer exclusion patterns (skip filetree/popup buffers)
+- Toggle root detection on/off at runtime (`:Rooter toggle`)
 - Automatic logging via [logger.nvim](https://github.com/wsdjeg/logger.nvim) (optional dependency)
 - Callback APIs for project switch events
 - Command-line interface (`:Rooter`)
@@ -71,6 +74,15 @@ require('rooter').setup({
   enable_cache = true,
   project_non_root = '',
   command = 'lcd',
+  exclude_patterns = {
+    '%[denite%]',
+    'denite%-filter',
+    '%[defx%]',
+    '^git://', -- git.vim
+    '^neo%-tree', -- neo-tree.nvim
+    '^NvimTree_', -- nvim-tree.nvim
+    '^__Tagbar__', -- tagbar.vim
+  },
 })
 ```
 
@@ -81,6 +93,10 @@ require('rooter').setup({
 | `enable_cache`    | `boolean`        | `true`        | Persist project history to `stdpath('data')/nvim-rooter.json` for cross-session persistence.         |
 | `project_non_root`| `string`         | `''`          | Behavior for files outside any project: `''` = keep cwd, `'home'` = switch to `$HOME`, `'current'` = switch to file's directory. |
 | `command`         | `string`         | `'lcd'`       | Vim command used to change directory: `'cd'`, `'tcd'`, or `'lcd'`.                                   |
+| `exclude_patterns`| `table<string>`  | see above     | Lua patterns matched against the buffer name; matching buffers (filetrees, popups...) are skipped by root detection. Remember to escape magic characters (`-` → `%-`). |
+
+Note: list options (`root_patterns`, `exclude_patterns`) are replaced as a whole
+when you set them, they are not merged with the defaults.
 
 ### Example: multiple patterns
 
@@ -89,6 +105,18 @@ require('rooter').setup({
   root_patterns = { '.git/', '.hg/', 'Cargo.toml', 'go.mod', 'package.json' },
   outermost = false,  -- find nearest root
   command = 'tcd',    -- use tab-local cd
+})
+```
+
+### Example: exclude plugin buffers
+
+```lua
+require('rooter').setup({
+  exclude_patterns = {
+    '^neo%-tree', -- lua pattern, escape the magic `-`
+    '^NvimTree_',
+    '^myfiletree://', -- add your own plugin buffers
+  },
 })
 ```
 
@@ -104,6 +132,9 @@ This plugin provides a user command `:Rooter`:
 | Command                              | Description                                      |
 | ------------------------------------ | ------------------------------------------------ |
 | `:Rooter`                            | Manually trigger root detection for current buffer. |
+| `:Rooter toggle`                     | Toggle root detection on/off.                    |
+| `:Rooter enable`                     | Enable root detection.                           |
+| `:Rooter disable`                    | Disable root detection (keeps current cwd).      |
 | `:Rooter clear`                      | Clear all cached projects.                       |
 | `:Rooter kill project1 project2`     | Delete all buffers belonging to the specified project(s). |
 
@@ -231,6 +262,10 @@ keymap file, starting an LSP server only for certain projects, etc.
 | `setup(opt)`                              | Initialize rooter.nvim with config options and set up autocmds.  |
 | `current_root()`                          | Detect and switch to the project root for the current buffer. Returns the root path. |
 | `current_name()`                          | Returns the current project name (from `b:rooter_project_name`). |
+| `toggle()`                                | Toggle root detection, returns the new state.                    |
+| `enable()`                                | Enable root detection, returns `true`.                           |
+| `disable()`                               | Disable root detection, returns `false`.                         |
+| `is_enabled()`                            | Returns whether root detection is currently enabled.             |
 | `list()`                                  | Open the project picker (Picker.nvim or Telescope, whichever is available). |
 | `open(project_path)`                      | Open a project by its path in a new tab.                         |
 | `clear()`                                 | Clear all cached projects and write empty cache to disk.         |
@@ -238,10 +273,21 @@ keymap file, starting an LSP server only for certain projects, etc.
 | `reg_callback(func, desc?)`               | Register a callback function (or Vimscript function name) to run on project switch. The callback receives the project object (`path`, `name`, `opened_time`). `desc` is an optional description for logging. |
 | `get_project_history()`                   | Returns the table of all cached projects.                        |
 
+## 🧪 Development
+
+```sh
+make test      # run the test suite
+make coverage  # run tests with luacov, enforces 100% line coverage
+```
+
+The coverage gate covers `lua/rooter/*.lua` and `plugin/rooter.lua`. The
+telescope/picker integration files are excluded since they cannot be loaded
+without their host plugins.
+
 ## 🐛 Debug
 
 Install [logger.nvim](https://github.com/wsdjeg/logger.nvim) as a dependency.
-Logging is automatically enabled when logger.nvim is available — no extra config needed.
+Logging is automatically enabled when logger.nvim is available - no extra config needed.
 
 ```lua
 require('plug').add({
@@ -280,7 +326,8 @@ Sample runtime log:
 
 ## 💬 Feedback
 
-If you encounter any bugs or have suggestions, please file an issue in the [issue tracker](https://github.com/wsdjeg/rooter.nvim/issues)
+If you encounter any bugs or have suggestions, please file an issue in the
+[issue tracker](https://github.com/wsdjeg/rooter.nvim/issues)
 
 ## 🙏 Credits
 
@@ -293,7 +340,7 @@ Like this plugin? Star the repository on
 GitHub.
 
 Love this plugin? Follow [me](https://wsdjeg.net/) on
-[GitHub](https://github.com/wsdjeg).
+GitHub.
 
 ## 📄 License
 

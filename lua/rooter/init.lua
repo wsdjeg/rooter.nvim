@@ -7,104 +7,45 @@
 
 local project_paths = {}
 local project_cache_path = vim.fn.stdpath('data') .. '/nvim-rooter.json'
-local project_rooter_ignores = {}
 local project_callback = {}
 local logger = require('rooter.logger')
 local rooter_config
+local enabled = true
 
 local function log(msg)
     logger.info(msg)
 end
 
-local function exists(expr)
-    return vim.fn.exists(expr) == 1
-end
-
 local unify_path = require('rooter.util').unify_path
 
-local function finddir(what, where, ...)
-    -- let old_suffixesadd = &suffixesadd
-    -- let &suffixesadd = ''
-    local count = select(1, ...)
-    if count == nil then
-        count = 0
-    end
-    local path = ''
-    local file = ''
+local function search_upward(fn, what, where, all)
+    local path = where
     if vim.fn.filereadable(where) == 1 and vim.fn.isdirectory(where) == 0 then
         path = vim.fn.fnamemodify(where, ':h')
-    else
-        path = where
     end
-    if count > 0 then
-        file = vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';', count)
-    elseif #{ ... } == 0 then
-        file = vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';')
-    elseif count == 0 then
-        file = vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';', -1)
-    else
-        file = vim.fn.get(vim.fn.finddir(what, vim.fn.escape(path, ' ') .. ';', -1), count, '')
+    local target = vim.fn.escape(path, ' ') .. ';'
+    if all then
+        -- outermost match: last entry of the upward search
+        return vim.fn.get(fn(what, target, -1), -1, '')
     end
-    -- let &suffixesadd = old_suffixesadd
-    return file
+    return fn(what, target)
 end
 
-local function findfile(what, where, ...)
-    -- let old_suffixesadd = &suffixesadd
-    -- let &suffixesadd = ''
-    local count = select(1, ...)
-    if count == nil then
-        count = 0
-    end
-
-    local file = ''
-    local path = ''
-
-    if vim.fn.filereadable(where) == 1 and vim.fn.isdirectory(where) == 0 then
-        path = vim.fn.fnamemodify(where, ':h')
-    else
-        path = where
-    end
-    if count > 0 then
-        file = vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';', count)
-    elseif #{ ... } == 0 then
-        file = vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';')
-    elseif count == 0 then
-        file = vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';', -1)
-    else
-        file = vim.fn.get(vim.fn.findfile(what, vim.fn.escape(path, ' ') .. ';', -1), count, '')
-    end
-    -- let &suffixesadd = old_suffixesadd
-    return file
+local function finddir(what, where, all)
+    return search_upward(vim.fn.finddir, what, where, all)
 end
 
-local function is_ignored_dir(dir)
-    for _, v in pairs(project_rooter_ignores) do
-        if string.match(dir, v) ~= nil then
-            return true
-        end
-    end
-    return false
+local function findfile(what, where, all)
+    return search_upward(vim.fn.findfile, what, where, all)
 end
+
 local function cache()
     local path = unify_path(project_cache_path, ':p')
     local file = io.open(path, 'w')
     if file then
-        if file:write(vim.json.encode(project_paths)) == nil then
-        end
+        file:write(vim.json.encode(project_paths))
         io.close(file)
-    else
     end
-end
-
-local function readfile(path)
-    local file = io.open(path, 'r')
-    if file then
-        local content = file:read('*a')
-        io.close(file)
-        return content
-    end
-    return nil
 end
 
 local function filereadable(fpath)
@@ -118,12 +59,9 @@ local function filereadable(fpath)
 end
 
 local function isdirectory(fpath)
-    local f, err, code = io.open(fpath, 'r')
-    if f ~= nil then
-        f:close()
-        return false
-    end
-    return code == 13
+    -- NOTE: io.open(dir, 'r') succeeds on unix and would report directories
+    -- as non-directories; use the builtin check instead
+    return vim.fn.isdirectory(fpath) == 1
 end
 
 local function filter_invalid(projects)
@@ -136,36 +74,20 @@ local function filter_invalid(projects)
 end
 
 local function load_cache()
-    if filereadable(project_cache_path) then
-        local cache_context = readfile(project_cache_path)
-        if cache_context ~= nil then
-            local cache_object = vim.json.decode(cache_context)
-            if type(cache_object) == 'table' then
-                project_paths = filter_invalid(cache_object)
-            end
-        end
-    else
+    local file = io.open(project_cache_path, 'r')
+    if not file then
+        return
     end
-end
-
-local function compare_time(d1, d2)
-    local proj1 = project_paths[d1] or {}
-    local proj1time = proj1['opened_time'] or 0
-    local proj2 = project_paths[d2] or {}
-    local proj2time = proj2['opened_time'] or 0
-    return proj2time < proj1time
-end
-local function sort_by_opened_time()
-    local paths = {}
-    for k, _ in pairs(project_paths) do
-        table.insert(paths, k)
+    local content = file:read('*a')
+    file:close()
+    local ok, cache_object = pcall(vim.json.decode, content)
+    if ok and type(cache_object) == 'table' then
+        project_paths = filter_invalid(cache_object)
     end
-    table.sort(paths, compare_time)
-    return paths
 end
 
 local function change_dir(dir)
-    if not dir or dir == unify_path(vim.fn.getcwd()) then
+    if not dir or dir == '' or dir == unify_path(vim.fn.getcwd()) then
         return false
     else
         vim.cmd(rooter_config.command .. ' ' .. dir)
@@ -176,65 +98,39 @@ end
 local function compare(d1, d2)
     local al = #vim.split(d1, '/')
     local bl = #vim.split(d2, '/')
-    if not rooter_config.outermost then
-        if bl >= al then
-            return false
-        else
-            return true
-        end
+    if rooter_config.outermost then
+        -- sort ascending: the shallowest dir comes first
+        return al <= bl
     else
-        if al > bl then
-            return false
-        else
-            return true
-        end
+        -- sort descending: the deepest dir comes first
+        return al > bl
     end
 end
 
 ---@return string
 local function sort_dirs(dirs)
     table.sort(dirs, compare)
-    local dir = dirs[1]
-    local bufdir = vim.fn.getbufvar('%', 'rootDir', '')
-    if bufdir == dir then
-        return ''
-    else
-        return dir
-    end
+    return dirs[1]
 end
 ---@return string
 local function find_root_directory()
+    -- empty buffer names are handled by current_root() (alternate-buffer
+    -- reuse); reaching here with an empty name should not happen, so just
+    -- fall back to the cwd as a safety net
     local fd = vim.fn.bufname('%')
-    if fd == '' then
-        -- for empty name buffer, check previous buffer dir
-        local previous_bufnr = vim.fn.bufnr('#')
-        if previous_bufnr == -1 then
-        elseif vim.fn.getbufvar('#', 'rootDir', '') == '' then
-        else
-            return vim.fn.getbufvar('#', 'rootDir', '')
-        end
-        fd = vim.fn.getcwd()
-    end
+    fd = fd ~= '' and fd or vim.fn.getcwd()
     fd = vim.fn.fnamemodify(fd, ':p')
     log('start to find root for: ' .. fd)
     local dirs = {}
     for _, pattern in pairs(rooter_config.root_patterns) do
         local find_path = ''
         if string.sub(pattern, -1) == '/' then
-            if rooter_config.outermost then
-                find_path = finddir(pattern, fd, -1)
-            else
-                find_path = finddir(pattern, fd)
-            end
+            find_path = finddir(pattern, fd, rooter_config.outermost)
         else
-            if rooter_config.outermost then
-                find_path = findfile(pattern, fd, -1)
-            else
-                find_path = findfile(pattern, fd)
-            end
+            find_path = findfile(pattern, fd, rooter_config.outermost)
         end
         local path_type = vim.fn.getftype(find_path)
-        if (path_type == 'dir' or path_type == 'file') and not (is_ignored_dir(find_path)) then
+        if path_type == 'dir' or path_type == 'file' then
             find_path = unify_path(find_path, ':p')
             if path_type == 'dir' then
                 find_path = unify_path(find_path, ':h:h')
@@ -244,7 +140,6 @@ local function find_root_directory()
             if find_path ~= unify_path(vim.fn.expand('$HOME')) then
                 log('        (' .. pattern .. '):' .. find_path)
                 table.insert(dirs, find_path)
-            else
             end
         end
     end
@@ -281,6 +176,29 @@ function M.setup(opt)
     if rooter_config.enable_cache then
         load_cache()
     end
+end
+
+function M.toggle()
+    if enabled then
+        return M.disable()
+    else
+        return M.enable()
+    end
+end
+
+function M.enable()
+    enabled = true
+    return enabled
+end
+
+function M.disable()
+    enabled = false
+    return enabled
+end
+
+---@return boolean
+function M.is_enabled()
+    return enabled
 end
 
 function M.list()
@@ -323,9 +241,6 @@ function M.RootchandgeCallback()
         ['name'] = name,
         ['opened_time'] = os.time(),
     }
-    if project.path == '' then
-        return
-    end
     cache_project(project)
     vim.fn.setbufvar('%', 'rooter_project_name', project.name)
     for _, Callback in pairs(project_callback) do
@@ -354,14 +269,7 @@ function M.reg_callback(func, ...)
         callback.desc = argv[1]
     end
     if type(callback.func) == 'string' or type(callback.func) == 'function' then
-        if
-            type(callback.func) == 'string'
-            and string.match(callback.func, '^function%(') ~= nil
-        then
-            callback.func = string.sub(callback.func, 11, -3)
-        end
         table.insert(project_callback, callback)
-    else
     end
 end
 
@@ -376,18 +284,29 @@ end
 function M.current_root()
     local bufname = vim.fn.bufname('%')
     if
-        bufname:match('%[denite%]')
-        or bufname:match('denite-filter')
-        or bufname:match('%[defx%]')
-        or bufname:match('^git://') -- this is for git.vim
-        or vim.fn.empty(bufname) == 1
-        or bufname:match('^neo%-tree') -- this is for neo-tree.nvim
-        or bufname:match('^NvimTree_') -- this is for nvim-tree.nvim
-        or bufname:match('^__Tagbar__') -- this is for tagbar.vim
+        not enabled
         or vim.o.autochdir
         or not rooter_config -- if rooter.nvim is not setup
     then
         return vim.fn.getcwd()
+    end
+    if vim.fn.empty(bufname) == 1 then
+        -- unnamed buffer (scratch, enew): reuse the alternate buffer's
+        -- project root so scratch buffers stay inside the current project
+        local alt_root = vim.fn.getbufvar('#', 'rootDir')
+        if alt_root ~= nil and alt_root ~= '' then
+            alt_root = unify_path(alt_root)
+            if change_dir(alt_root) then
+                M.RootchandgeCallback()
+            end
+            return alt_root
+        end
+        return unify_path(vim.fn.getcwd())
+    end
+    for _, pattern in pairs(rooter_config.exclude_patterns or {}) do
+        if bufname:match(pattern) then
+            return vim.fn.getcwd()
+        end
     end
     local rootdir = vim.b.rootDir or ''
     if rootdir == '' or type(rootdir) ~= 'string' then
@@ -406,6 +325,7 @@ function M.current_root()
                     rootdir = unify_path(vim.fn.getcwd())
                 end
             end
+            rootdir = rootdir or ''
             change_dir(rootdir)
         else
             -- for project
@@ -426,3 +346,4 @@ end
 -- }}}
 
 return M
+
