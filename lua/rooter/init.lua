@@ -99,8 +99,12 @@ local function compare(d1, d2)
     local al = #vim.split(d1, '/')
     local bl = #vim.split(d2, '/')
     if rooter_config.outermost then
-        -- sort ascending: the shallowest dir comes first
-        return al <= bl
+        -- sort ascending: the shallowest dir comes first;
+        -- must be a strict comparator (with a deterministic tie-break),
+        -- otherwise two roots with the same path depth -- e.g. two patterns
+        -- matching the same directory -- make table.sort throw
+        -- "invalid order function for sorting"
+        return al < bl or (al == bl and d1 < d2)
     else
         -- sort descending: the deepest dir comes first
         return al > bl
