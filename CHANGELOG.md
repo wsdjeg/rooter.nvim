@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.3.0...v1.4.0) (2026-08-18)
+
+
+### Features
+
+* add exclude_patterns option and :Rooter toggle/enable/disable ([32f3d68](https://github.com/wsdjeg/rooter.nvim/commit/32f3d68e439a28df35cfef1d58decfdee6ec2259))
+* pass project object to switch callbacks ([ebca729](https://github.com/wsdjeg/rooter.nvim/commit/ebca72957d849afbfa0740077697234bde45cfc0))
+
+
+### Bug Fixes
+
+* **sort:** use a strict comparator for table.sort ([#10](https://github.com/wsdjeg/rooter.nvim/issues/10)) ([7e6514f](https://github.com/wsdjeg/rooter.nvim/commit/7e6514ffa2ee56fd5281f5f71a322f5f11bb936a))
+* typo in readme s/root_pattern/root_patterns ([584d7dd](https://github.com/wsdjeg/rooter.nvim/commit/584d7dd2c53b6607ce33bd93a6feb496de853a78))
+
 ## [1.3.0](https://github.com/wsdjeg/rooter.nvim/compare/v1.2.0...v1.3.0) (2025-11-22)
 
 
