@@ -91,6 +91,13 @@ local function change_dir(dir)
         return false
     else
         vim.cmd(rooter_config.command .. ' ' .. dir)
+        if rooter_config.trigger_dir_changed then
+            local scope_map = { cd = 'global', tcd = 'tabpage', lcd = 'window' }
+            vim.api.nvim_exec_autocmds('DirChanged', {
+                pattern = '*',
+                data = { cwd = dir, scope = scope_map[rooter_config.command] or 'global' },
+            })
+        end
         return true
     end
 end
@@ -350,4 +357,3 @@ end
 -- }}}
 
 return M
-
