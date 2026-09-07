@@ -248,6 +248,63 @@ function TestRooterRoot:test_cached_root_redir_on_reentry()
   lu.assertEquals(vim.fn.getcwd(), base .. '/proj')
 end
 
+-- trigger_dir_changed ----------------------------------------------------------
+
+function TestRooterRoot:test_trigger_dir_changed_fires_extra_dirchanged()
+  local function dirchanged_events(opt)
+    default_setup(opt)
+    vim.cmd('edit ' .. base .. '/proj/file.txt')
+    rooter.current_root()
+    -- move away, then re-root: change_dir() must switch back to the project
+    vim.cmd('lcd ' .. base)
+    local events = {}
+    local id = vim.api.nvim_create_autocmd('DirChanged', {
+      callback = function(ev)
+        -- nvim_exec_autocmds() delivers its data via ev.data, while a real
+        -- :lcd DirChanged exposes cwd/scope through v:event
+        events[#events + 1] = {
+          cwd = ev.data and ev.data.cwd or vim.v.event.cwd,
+          scope = ev.data and ev.data.scope or vim.v.event.scope,
+        }
+      end,
+    })
+    rooter.current_root()
+    vim.api.nvim_del_autocmd(id)
+    return events
+  end
+
+  local without = dirchanged_events({})
+  local with = dirchanged_events({ trigger_dir_changed = true })
+
+  -- :lcd itself fires one DirChanged; the option must add exactly one more
+  lu.assertEquals(#without, 1)
+  lu.assertEquals(#with, 2, 'trigger_dir_changed should fire one extra DirChanged')
+  -- the extra event mirrors a real one: cwd = new root, scope from command
+  lu.assertEquals(with[2].cwd, base .. '/proj/')
+  lu.assertEquals(with[2].scope, 'window') -- default command is lcd
+end
+
+function TestRooterRoot:test_trigger_dir_changed_scope_follows_command()
+  for _, case in ipairs({ { 'cd', 'global' }, { 'tcd', 'tabpage' } }) do
+    local command, scope = case[1], case[2]
+    default_setup({ command = command, trigger_dir_changed = true })
+    vim.cmd('edit ' .. base .. '/proj/file.txt')
+    rooter.current_root()
+    vim.cmd(command .. ' ' .. base)
+    local scopes = {}
+    local id = vim.api.nvim_create_autocmd('DirChanged', {
+      callback = function(ev)
+        scopes[#scopes + 1] = ev.data and ev.data.scope or vim.v.event.scope
+      end,
+    })
+    rooter.current_root()
+    vim.api.nvim_del_autocmd(id)
+    -- one built-in DirChanged from :cd/:tcd plus the manual trigger
+    lu.assertEquals(scopes, { scope, scope },
+      command .. ' should fire DirChanged with ' .. scope .. ' scope')
+  end
+end
+
 -- autochdir ---------------------------------------------------------------------
 
 function TestRooterRoot:test_autochdir_skips_rooting()
