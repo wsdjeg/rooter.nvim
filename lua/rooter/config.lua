@@ -6,6 +6,7 @@ local M = {}
 ---@field enable_cache? boolean
 ---@field project_non_root? string
 ---@field outermost? boolean
+---@field trigger_dir_changed? boolean
 ---@field exclude_patterns? table<string> Lua patterns matched against buffer names; matching buffers are skipped by root detection
 
 ---@type RooterConfig
@@ -15,6 +16,7 @@ local default = {
   enable_cache = true,
   project_non_root = '',
   command = 'lcd',
+  trigger_dir_changed = false,
   exclude_patterns = {
     '%[denite%]',
     'denite%-filter',
